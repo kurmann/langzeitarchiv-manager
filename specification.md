@@ -53,7 +53,7 @@ Dies ist der Eintrittspunkt für alle Daten. Die Anwendung muss als strenger Gat
     Die Anwendung muss intelligent entscheiden, wie Daten abgelegt werden, um den zukünftigen Zugriff zu optimieren:
 
     - *Medien (Standard-Modus):* Videodateien und Fotos sollen als **lose Dateien** ("Loose Files") im Archiv liegen. Dies ermöglicht den direkten Zugriff ("Random Access") ohne vorheriges, zeitaufwendiges Entpacken. Ein Abspielen direkt vom Archivmedium muss möglich sein. Die Verzeichnisstruktur der Quelle wird 1:1 übernommen.
-    - *Projekte (Bundle-Modus):* Komplexe Verzeichnisstrukturen, die logisch untrennbar zusammengehören und oft aus tausenden kleinen Dateien bestehen (z.B. Final Cut Bundles, Logic Projekte, Software-Code-Repositories, virtuelle Maschinen), müssen in einen Container (**TAR**) verpackt werden. Dies schützt die Integrität der Ordnerstruktur, der MacOS-spezifischen Metadaten (Extended Attributes) und entlastet das Dateisystem des Archivmediums.
+    - *Projekte (Bundle-Modus):* Komplexe Verzeichnisstrukturen, die logisch untrennbar zusammengehören und oft aus tausenden kleinen Dateien bestehen (z.B. Final Cut Bundles, Logic Projekte, Software-Code-Repositories, virtuelle Maschinen), müssen in einen Container verpackt werden. Dies schützt die Integrität der Ordnerstruktur, der MacOS-spezifischen Metadaten (Extended Attributes) und entlastet das Dateisystem des Archivmediums. Als Container-Formate stehen **TAR**, **ISO** und **DMG** zur Wahl (siehe Abschnitt 4.6).
 - **Das Atomare Paket:**
 
     Die wichtigste logische Einheit des Archivs ist das "Archiv-Paket". Ein Paket (z.B. der Ordner "2025_Weihnachten" oder das File "Projekt_Hausbau.tar") wird durch ein eigenes, dediziertes PAR2-Set geschützt. Die Anwendung muss sicherstellen, dass ein solches Paket **niemals** über mehrere physische Datenträger gesplittet wird (kein "Disc Spanning"). Ein Paket ist atomar: Ganz oder gar nicht. Dies garantiert, dass zur Wiederherstellung niemals mehrere Discs gleichzeitig benötigt werden.
@@ -142,7 +142,9 @@ Die Anwendung erfindet das Rad nicht neu, sondern orchestriert bewährte, langle
 - **par2cmdline:** Zur Erstellung und Prüfung von Redundanzdaten.
 - **rsync:** Für robuste, abbrechbare Datentransfers auf Festplatten.
 - **drutil (macOS) / xorriso (Linux):** Zur direkten Steuerung der Brenn-Hardware.
-- **tar:** Zum Erstellen von Containern (ausschließlich im unkomprimierten "Store"-Modus, um Bit-Rot-Ausbreitung zu minimieren).
+- **tar:** Zum Erstellen von TAR-Containern (ausschließlich im unkomprimierten "Store"-Modus, um Bit-Rot-Ausbreitung zu minimieren).
+- **hdiutil (macOS):** Zum Erstellen und Mounten von DMG-Images, inkl. Verschlüsselung (AES-256).
+- **mkisofs / xorriso:** Zum Erstellen von ISO-9660/UDF-Images für plattformübergreifende Archiv-Container.
 
 ## 4. Abgrenzung & Entscheidungshistorie (Rationale)
 
@@ -154,7 +156,7 @@ Wir haben uns bewusst gegen SQLite entschieden. Zwar wäre die Suche Millisekund
 
 ### 4.2 Warum kein globales TAR für alles?
 
-Ursprünglich wurde überlegt, alle Daten in TAR-Container zu packen. Wir haben dies verworfen. Für Videodateien ist der direkte Zugriff ("Random Access") essenziell. Ein 25 GB TAR zu entpacken, nur um einen Clip zu sehen, ist ineffizient und benutzerunfreundlich. Daher gilt die Hybrid-Regel: Lose Dateien für Medien, TAR nur für technische Bundles, die ihre interne Struktur zwingend brauchen.
+Ursprünglich wurde überlegt, alle Daten in TAR-Container zu packen. Wir haben dies verworfen. Für Videodateien ist der direkte Zugriff ("Random Access") essenziell. Ein 25 GB TAR zu entpacken, nur um einen Clip zu sehen, ist ineffizient und benutzerunfreundlich. Daher gilt die Hybrid-Regel: Lose Dateien für Medien, Container (TAR, ISO oder DMG) nur für technische Bundles, die ihre interne Struktur zwingend brauchen.
 
 ### 4.3 Warum keine Proxy-Verwaltung in dieser App?
 
@@ -167,6 +169,37 @@ Cloud-Backups (z.B. zu Mega.nz) sind sinnvoll als temporärer Puffer während de
 ### 4.5 Warum "Smart Mapping" statt "Auto-Fill" auf HDDs?
 
 Bei optischen Medien füllen wir den Platz maximal aus ("Bin-Packing"), da die Medien austauschbar und uniform sind. Bei Festplatten tun wir das nicht. Wir wollen nicht, dass ein logischer Jahrgang (z.B. 2025) über zwei Festplatten verstreut wird, nur um die letzten 10 GB einer Platte zu füllen. Die logische Zusammengehörigkeit und Auffindbarkeit auf der Festplatte hat Vorrang vor der maximalen Speicherplatz-Effizienz.
+
+### 4.6 Warum ISO und DMG als Alternativen zu TAR?
+
+Während TAR das klassische, bewährte Archivierungsformat für Unix-Systeme ist, haben ISO und DMG in bestimmten Anwendungsfällen klare Vorteile, die eine Unterstützung als gleichwertige Container-Optionen rechtfertigen.
+
+**ISO (ISO-9660/UDF Image):**
+
+- **Plattformunabhängigkeit:** ISO-Images sind ein offener, international normierter Standard (ISO 9660, ergänzt durch UDF), der auf praktisch jedem Betriebssystem – Windows, macOS, Linux, aber auch auf Embedded-Systemen und historischen Systemen – nativ unterstützt wird. Ein TAR hingegen ist primär ein Unix-Konstrukt und wird unter Windows ohne zusätzliche Software nicht nativ entpackt.
+- **Kein Entpacken notwendig:** ISO-Images können direkt gemountet werden – sowohl als virtuelle Laufwerke auf einem Desktop-System als auch auf optische Medien gebrannt. Der Inhalt ist sofort zugänglich, ohne eine temporäre Kopie des gesamten Containers anlegen zu müssen. Dies ist besonders vorteilhaft bei großen Bundles (mehrere GB), wo ein TAR-Entpacken erhebliche Zeit und temporären Speicher beansprucht.
+- **Weite Verbreitung und Langlebigkeit:** Das ISO-Format ist seit Jahrzehnten etabliert und wird es aller Voraussicht nach auch in Zukunft sein. Es bildet die Grundlage für nahezu alle optischen Medien (CD, DVD, Blu-ray) und ist damit eng mit der physischen Archivierungsstrategie des LAM verknüpft. Die Wahrscheinlichkeit, dass Werkzeuge zum Lesen von ISO-Images in 50 Jahren nicht mehr verfügbar sind, ist verschwindend gering.
+- **Geeignet für:** Software-Bundles, Dokumentensammlungen, Projektarchive, bei denen plattformübergreifender Zugriff wichtig ist.
+
+**DMG (Apple Disk Image):**
+
+- **Native macOS-Integration:** Das DMG-Format ist das Standard-Disk-Image-Format von macOS und wird vom Betriebssystem ohne jegliche Drittsoftware vollständig unterstützt. Doppelklick genügt zum Mounten. Alle macOS-spezifischen Metadaten, Extended Attributes und Resource Forks werden korrekt und vollständig bewahrt – etwas, das mit TAR unter Umständen Konfigurationsaufwand erfordert und bei ISO gar nicht möglich ist.
+- **Optionale Verschlüsselung (AES-256):** DMG-Images können nativ mit AES-128 oder AES-256 verschlüsselt werden (mittels `hdiutil`). Dies erlaubt es, sensitives Material (z.B. persönliche Dokumente, Passwörter, Steuerunterlagen) verschlüsselt im Archiv abzulegen, ohne auf externe Verschlüsselungstools angewiesen zu sein. TAR und ISO bieten diese Funktionalität nicht nativ.
+- **Integrierte Prüfsummen:** `hdiutil` kann beim Erstellen und beim Verifizieren eines DMG automatisch Prüfsummen berechnen, was die Integritätsprüfung vereinfacht.
+- **Geeignet für:** macOS-spezifische Anwendungsprojekte (Final Cut Bundles, Logic Projekte, Xcode-Projekte), sensitive Daten die verschlüsselt archiviert werden sollen, und alle Bundles, bei denen macOS-Metadaten-Treue oberste Priorität hat.
+
+**Entscheidungshilfe: Welches Format wählen?**
+
+| Kriterium | TAR | ISO | DMG |
+|---|---|---|---|
+| Plattformunabhängigkeit | Unix-zentrisch | ✅ Sehr hoch | macOS-zentrisch |
+| Direktes Mounten (kein Entpacken) | ❌ | ✅ | ✅ |
+| macOS-Metadaten (xattr, forks) | Eingeschränkt | ❌ | ✅ |
+| Verschlüsselung (nativ) | ❌ | ❌ | ✅ (AES-256) |
+| Werkzeug-Verfügbarkeit in 50 Jahren | Hoch | Sehr hoch | macOS-abhängig |
+| Standardisierung | De-facto | ISO-Norm | Apple-proprietär |
+
+Die Anwendung wählt das Container-Format nicht automatisch, sondern der Nutzer legt es beim Erstellen eines Bundles fest. Die Standardempfehlung ist **ISO** für maximale Portabilität und **DMG** wenn Verschlüsselung oder maximale macOS-Kompatibilität gewünscht sind. **TAR** bleibt als Option für einfache, Unix-lastige Bundles erhalten.
 
 ## 5. Zusammenfassung der User Experience
 
