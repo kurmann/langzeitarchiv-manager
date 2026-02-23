@@ -144,7 +144,7 @@ Die Anwendung erfindet das Rad nicht neu, sondern orchestriert bewährte, langle
 - **drutil (macOS) / xorriso (Linux):** Zur direkten Steuerung der Brenn-Hardware.
 - **tar:** Zum Erstellen von TAR-Containern (ausschließlich im unkomprimierten "Store"-Modus, um Bit-Rot-Ausbreitung zu minimieren).
 - **hdiutil (macOS):** Zum Erstellen und Mounten von DMG-Images, inkl. Verschlüsselung (AES-256).
-- **mkisofs / xorriso:** Zum Erstellen von ISO-9660/UDF-Images für plattformübergreifende Archiv-Container.
+- **mkisofs / xorriso:** Zum Erstellen von ISO-9660/UDF-Images für plattformübergreifende Archiv-Container. ([Begründung](docs/iso-vs-hdiutil.md))
 
 ## 4. Abgrenzung & Entscheidungshistorie (Rationale)
 
