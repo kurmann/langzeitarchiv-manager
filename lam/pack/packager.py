@@ -68,26 +68,24 @@ def _create_tar(source_dir: Path, output_dir: Path, name: str) -> Path:
 
 def _create_iso(source_dir: Path, output_dir: Path, name: str) -> Path:
     archive_path = output_dir / f"{name}.iso"
-    binary = shutil.which("xorriso")
+    binary = shutil.which("hdiutil")
     if binary is None:
         raise PackagerError(
-            "xorriso not found. "
-            "Install it first (e.g. `brew install xorriso` on macOS or "
-            "`apt install xorriso` on Debian/Ubuntu)."
+            "hdiutil not found. "
+            "hdiutil is a macOS built-in tool and is not available on this system."
         )
     cmd = [
         binary,
-        "-as", "mkisofs",
+        "makehybrid",
         "-o", str(archive_path),
-        "-V", name[:32],   # volume label (max 32 chars)
-        "-udf",
-        "-r",
         str(source_dir),
+        "-udf",
+        "-default-volume-name", name,
     ]
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
         raise PackagerError(
-            f"xorriso exited with code {result.returncode}.\n"
+            f"hdiutil exited with code {result.returncode}.\n"
             f"stdout: {result.stdout}\nstderr: {result.stderr}"
         )
     return archive_path

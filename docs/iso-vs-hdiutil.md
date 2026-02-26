@@ -1,89 +1,81 @@
-# Design-Entscheidung: `mkisofs`/`xorriso` statt `hdiutil` für ISO-9660/UDF-Images
+# Design-Entscheidung: `hdiutil makehybrid` fur ISO-9660/UDF-Images
 
 ## Zusammenfassung
 
-Für die Erstellung von **ISO-9660/UDF-Images** wird im LAM primär `xorriso -as mkisofs` (bzw. `mkisofs`) verwendet – **nicht** `hdiutil`. Diese Entscheidung basiert auf den Kernprinzipien des LAM: Plattformunabhängigkeit, Langzeitlesbarkeit, Reproduzierbarkeit und vollständige Kontrolle über die ISO/UDF-Optionen.
+Fur die Erstellung von **ISO-9660/UDF-Hybrid-Images** verwendet LAM `hdiutil makehybrid`. Diese Entscheidung basiert auf praktischen Tests: `xorriso` im `mkisofs`-Kompatibilitaetsmodus unterstuetzt das `-udf`-Flag nicht, was die Kernfunktion des LAM (UDF-basierte Langzeitarchivierung) verunmoeglicht.
 
-`hdiutil` bleibt für **DMG-Workflows** das Werkzeug der Wahl.
+`hdiutil` erzeugt standardkonforme ISO-9660 + UDF Hybrid-Images, die auf **allen Plattformen** lesbar sind. Die Plattformunabhaengigkeit betrifft das Ausgabeformat, nicht das Erstellungswerkzeug.
 
 ---
 
-## Begründung im Detail
+## Warum nicht xorriso?
 
-### 1. `hdiutil` ist macOS-spezifisch
+Die urspruengliche Entscheidung fuer `xorriso -as mkisofs` basierte auf dem theoretischen Vorteil der plattformuebergreifenden Erstellung. In der Praxis scheitert dieser Ansatz:
 
-`hdiutil` ist ein proprietäres Apple-Tool und ausschließlich unter macOS verfügbar. Es ist hervorragend für das Erstellen, Mounten und Verschlüsseln von DMG-Images geeignet – einem Apple-eigenen Format. Für ISO-9660/UDF-Images ist `hdiutil` jedoch nicht die optimale Wahl:
+```
+xorriso : FAILURE : -as mkisofs: Unsupported option '-udf'
+xorriso : WARNING : -volid text does not comply to ISO 9660 / ECMA 119 rules
+```
 
-- Die ISO-Erstellung via `hdiutil` ist eine Sekundärfunktion; Parameter für ISO-Level, UDF-Versionen, Joliet oder Rock Ridge lassen sich kaum oder gar nicht gezielt steuern.
-- Der erzeugte Output ist an das macOS-Ökosystem gebunden. Reproduzierbarkeit (Byte-identische Ergebnisse) ist nicht garantiert.
-- Auf Linux oder Windows steht `hdiutil` grundsätzlich nicht zur Verfügung.
+**Problem 1:** Das `-udf`-Flag wird im mkisofs-Kompatibilitaetsmodus nicht unterstuetzt. UDF ist jedoch fuer Langzeitarchivierung essentiell (lange Dateinamen, Unicode, Dateien > 4 GB).
 
-### 2. `mkisofs`/`xorriso` ist cross-platform und seit Jahrzehnten etabliert
+**Problem 2:** ISO 9660 / ECMA 119 erzwingt strenge Regeln fuer Volume-Labels (nur Grossbuchstaben A-Z, Ziffern 0-9, Underscore). Namen wie "Weihnachtsquiz Kurmann" sind nicht konform.
 
-`xorriso` (mit dem `mkisofs`-Kompatibilitätsmodus via `-as mkisofs`) und das klassische `mkisofs` sind:
+Der native xorriso-Modus (ohne `-as mkisofs`) bietet nur eingeschraenkte UDF-Unterstuetzung und ist erheblich komplexer zu konfigurieren.
 
-- **Plattformübergreifend:** Verfügbar auf macOS (via Homebrew: `brew install xorriso`), Linux (via Paketmanager) und indirekt auf Windows (via WSL oder Cygwin).
-- **Offen und dokumentiert:** Beides sind freie, quelloffene Werkzeuge mit umfangreicher Dokumentation, die seit Jahrzehnten in Distributions- und Archivierungskontexten eingesetzt werden (z. B. zum Mastern von Linux-Installationsmedien).
-- **Reproduzierbar:** Über identische Parameter lassen sich byte-identische Images erzeugen – wichtig für die Verifikation und die Langzeitintegrität.
+---
 
-### 3. Vollständige Kontrolle über ISO/UDF-Optionen
+## Warum hdiutil makehybrid?
 
-`xorriso`/`mkisofs` bieten präzise Kontrolle über alle relevanten Parameter, die für Archivierungs-Images entscheidend sind:
+### Bewaehrte Loesung
 
-| Parameter | Bedeutung |
-|---|---|
-| `-iso-level 3` | ISO-9660 Level 3 (Dateien > 2 GB, lange Dateinamen) |
-| `-udf` / `-udf-version 2.01` | UDF-Dateisystem-Version (wichtig für Blu-ray) |
-| `-J` (Joliet) | Kompatibilität mit Windows-Systemen |
-| `-R` (Rock Ridge) | Unix-Metadaten (Berechtigungen, Symlinks) |
-| `-V <Bezeichnung>` | Volume-Label des Images |
-| `--hardlinks` | Harte Links im Image bewahren |
+`hdiutil makehybrid` wird bereits erfolgreich im Schwesterprojekt **kamera-einleser** eingesetzt, wo hunderte ISO-Archive damit erstellt wurden.
 
-Dieses Kontrollniveau ist mit `hdiutil` für ISO-Images nicht erreichbar.
+### Standardkonforme Ausgabe
+
+Der Befehl erzeugt ISO 9660 + UDF Hybrid-Images, die auf jedem Betriebssystem lesbar sind:
+- **macOS:** Doppelklick zum Mounten
+- **Windows:** Nativ unterstuetzt seit Windows 8
+- **Linux:** `mount -o loop` oder Dateimanager
+
+### Keine externen Abhaengigkeiten
+
+`hdiutil` ist ein macOS-Systemwerkzeug. Keine Installation via Homebrew oder apt erforderlich.
+
+### Keine Einschraenkungen bei Volume-Namen
+
+Im Gegensatz zu xorriso/mkisofs gibt es keine Zeichenbeschraenkungen. Leerzeichen, Umlaute und beliebig lange Namen funktionieren.
 
 ---
 
 ## Praktische Verwendung
 
-### Image erstellen (xorriso im mkisofs-Modus)
+### ISO erstellen
 
 ```bash
-xorriso -as mkisofs \
-  -iso-level 3 \
-  -udf \
-  -J \
-  -R \
-  -V "ARCHIV_2025_01" \
-  -o /pfad/zum/output.iso \
-  /pfad/zur/quelldaten/
+hdiutil makehybrid -o /pfad/zum/output.iso /pfad/zur/quelldaten/ -udf -default-volume-name "Archiv 2025"
 ```
 
-### Image verifizieren (Mounten und Prüfsumme)
+### ISO verifizieren
 
 ```bash
-# macOS
 hdiutil attach /pfad/zum/output.iso -readonly -mountpoint /tmp/verify_mount
-
-# Inhalt prüfen
-sha256sum /tmp/verify_mount/wichtige_datei.mp4
-
-# Aushängen
+ls /tmp/verify_mount/
 hdiutil detach /tmp/verify_mount
 ```
 
 ---
 
-## Empfehlung: Welches Tool für welches Format?
+## Werkzeug-Zuordnung
 
-| Anwendungsfall | Empfohlenes Tool |
+| Anwendungsfall | Werkzeug |
 |---|---|
-| ISO-9660/UDF-Image erstellen | `xorriso -as mkisofs` |
-| DMG erstellen / verschlüsseln | `hdiutil` |
-| DMG mounten / verifizieren | `hdiutil` |
-| ISO mounten (macOS) | `hdiutil attach` |
+| ISO-9660/UDF-Image erstellen | `hdiutil makehybrid` |
+| DMG erstellen / verschluesseln | `hdiutil create` |
+| ISO/DMG mounten (macOS) | `hdiutil attach` |
 
 ---
 
-## Fazit
+## Hinweis zur plattformuebergreifenden Erstellung
 
-Die Kombination aus **Plattformunabhängigkeit**, **Langzeitlesbarkeit**, **Reproduzierbarkeit** und **vollständiger Parametersteuerung** macht `xorriso`/`mkisofs` zum richtigen Werkzeug für die ISO/UDF-Erstellung im LAM. `hdiutil` bleibt auf seine Kernkompetenz beschränkt: DMG-Workflows unter macOS.
+Falls in Zukunft ISO-Erstellung auf Linux benoetigt wird, waere `genisoimage` (der Debian-Fork von mkisofs) eine Option, da dieser im Gegensatz zu xorriso das `-udf`-Flag unterstuetzt. Fuer den aktuellen Einsatz auf macOS ist `hdiutil makehybrid` die pragmatische und bewaehrte Wahl.

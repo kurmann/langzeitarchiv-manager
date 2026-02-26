@@ -143,8 +143,7 @@ Die Anwendung erfindet das Rad nicht neu, sondern orchestriert bewährte, langle
 - **rsync:** Für robuste, abbrechbare Datentransfers auf Festplatten.
 - **drutil (macOS) / xorriso (Linux):** Zur direkten Steuerung der Brenn-Hardware.
 - **tar:** Zum Erstellen von TAR-Containern (ausschließlich im unkomprimierten "Store"-Modus, um Bit-Rot-Ausbreitung zu minimieren).
-- **hdiutil (macOS):** Zum Erstellen und Mounten von DMG-Images, inkl. Verschlüsselung (AES-256).
-- **mkisofs / xorriso:** Zum Erstellen von ISO-9660/UDF-Images für plattformübergreifende Archiv-Container. ([Begründung](docs/iso-vs-hdiutil.md))
+- **hdiutil (macOS):** Zum Erstellen und Mounten von DMG-Images (inkl. Verschlüsselung AES-256) und ISO-9660/UDF-Hybrid-Images für plattformübergreifende Archiv-Container. ([Begründung](docs/iso-vs-hdiutil.md))
 
 ## 4. Abgrenzung & Entscheidungshistorie (Rationale)
 

@@ -63,11 +63,11 @@ def test_unknown_format_raises(source_dir, tmp_path):
 
 
 def test_iso_missing_tool(source_dir, tmp_path, monkeypatch):
-    """When xorriso is absent, PackagerError is raised."""
+    """When hdiutil is absent, PackagerError is raised."""
     import shutil
 
     monkeypatch.setattr(shutil, "which", lambda _: None)
-    with pytest.raises(PackagerError, match="xorriso"):
+    with pytest.raises(PackagerError, match="hdiutil"):
         create_archive(source_dir, tmp_path, fmt="iso")
 
 
