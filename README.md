@@ -11,8 +11,7 @@ provides a TOML-based configuration system.
 | Tool | Purpose | Install |
 |---|---|---|
 | **par2** / **par2cmdline** | PAR2 redundancy data | `brew install par2` (macOS) · `apt install par2` (Debian/Ubuntu) |
-| **xorriso** | ISO image creation (`--format iso`) | `brew install xorriso` · `apt install xorriso` |
-| **hdiutil** | DMG image creation (`--format dmg`) | built-in macOS only |
+| **hdiutil** | ISO and DMG image creation (`--format iso` / `--format dmg`) | built-in macOS only |
 
 Python **3.12+** is required.
 
