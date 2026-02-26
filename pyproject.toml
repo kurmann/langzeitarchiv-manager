@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=42"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "langzeitarchiv-manager"
+version = "0.1.0"
+description = "CLI tool for long-term digital archiving with PAR2 redundancy"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "typer>=0.12",
+    "tomli-w>=1.0",
+    "rich>=13.0",
+]
+
+[project.scripts]
+langzeitarchiv-manager = "lam.cli:app"
+lam = "lam.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["lam*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
