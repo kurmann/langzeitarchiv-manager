@@ -40,6 +40,10 @@ def pack(
         Optional[int],
         typer.Option("--redundancy", "-r", help="PAR2 redundancy in percent (e.g. 15)."),
     ] = None,
+    par2_volumes: Annotated[
+        Optional[int],
+        typer.Option("--par2-volumes", "-n", help="Number of PAR2 volume files (default: 1)."),
+    ] = None,
 ) -> None:
     """Pack SOURCE_DIR into an archive and create PAR2 redundancy data."""
     # --- Resolve defaults from config ---
@@ -55,6 +59,9 @@ def pack(
 
     if redundancy is None:
         redundancy = int(cfg.get("pack.redundancy_percent"))
+
+    if par2_volumes is None:
+        par2_volumes = int(cfg.get("pack.par2_volumes"))
 
     # --- Validate ---
     console.print(f"[bold]Validating[/bold] {source_dir} …")
@@ -78,7 +85,7 @@ def pack(
     # --- PAR2 ---
     console.print(f"[bold]Creating PAR2 redundancy data[/bold] ({redundancy}%) …")
     try:
-        par2_files = par2.create(archive_path, redundancy)
+        par2_files = par2.create(archive_path, redundancy, par2_volumes)
     except par2.Par2Error as exc:
         console.print(f"[red]PAR2 creation failed:[/red] {exc}")
         raise typer.Exit(code=1) from exc

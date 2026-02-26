@@ -17,6 +17,7 @@ CONFIG_FILE = CONFIG_DIR / "config.toml"
 DEFAULTS: dict[str, Any] = {
     "pack": {
         "redundancy_percent": 15,
+        "par2_volumes": 1,
         "output_dir": str(Path.home() / "LAM" / "staging"),
         "default_format": "tar",
     }

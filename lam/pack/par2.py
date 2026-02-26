@@ -11,7 +11,7 @@ class Par2Error(Exception):
     """Raised when par2create fails or is not available."""
 
 
-def create(archive_path: Path, redundancy_percent: int) -> list[Path]:
+def create(archive_path: Path, redundancy_percent: int, volumes: int = 1) -> list[Path]:
     """Create PAR2 sidecar files next to *archive_path*.
 
     Parameters
@@ -20,6 +20,9 @@ def create(archive_path: Path, redundancy_percent: int) -> list[Path]:
         Path to the archive file (TAR / ISO / DMG) to protect.
     redundancy_percent:
         Redundancy level expressed as an integer percentage (e.g. 15 → 15 %).
+    volumes:
+        Number of PAR2 volume files to create (``-n`` flag). Defaults to 1,
+        which consolidates all recovery data into a single volume file.
 
     Returns
     -------
@@ -48,6 +51,7 @@ def create(archive_path: Path, redundancy_percent: int) -> list[Path]:
         binary,
         "create",
         f"-r{redundancy_percent}",
+        f"-n{volumes}",
         str(par2_base),
         str(archive_path),
     ]
