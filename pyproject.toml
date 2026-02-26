@@ -16,7 +16,6 @@ dependencies = [
 
 [project.scripts]
 langzeitarchiv-manager = "lam.cli:app"
-lam = "lam.cli:app"
 
 [tool.setuptools.packages.find]
 where = ["."]
