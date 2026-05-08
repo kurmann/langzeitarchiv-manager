@@ -1,6 +1,6 @@
-"""Config management for LAM.
+"""Config management for disc-archiver.
 
-Storage: ~/.config/langzeitarchiv-manager/config.toml
+Storage: ~/.config/disc-archiver/config.toml
 """
 
 from __future__ import annotations
@@ -11,14 +11,14 @@ from typing import Any
 
 import tomli_w
 
-CONFIG_DIR = Path.home() / ".config" / "langzeitarchiv-manager"
+CONFIG_DIR = Path.home() / ".config" / "disc-archiver"
 CONFIG_FILE = CONFIG_DIR / "config.toml"
 
 DEFAULTS: dict[str, Any] = {
     "pack": {
         "redundancy_percent": 15,
         "par2_volumes": 1,
-        "output_dir": str(Path.home() / "LAM" / "staging"),
+        "output_dir": str(Path.home() / "DiscArchive" / "staging"),
         "default_format": "tar",
     }
 }

@@ -1,10 +1,10 @@
-"""Tests for lam.pack.packager (TAR creation)."""
+"""Tests for disc_archiver.pack.packager (TAR creation)."""
 
 import tarfile
 
 import pytest
 
-from lam.pack.packager import PackagerError, create_archive
+from disc_archiver.pack.packager import PackagerError, create_archive
 
 
 @pytest.fixture()

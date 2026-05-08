@@ -3,9 +3,9 @@ requires = ["setuptools>=42"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "langzeitarchiv-manager"
-version = "0.1.1"
-description = "CLI tool for long-term digital archiving with PAR2 redundancy"
+name = "kurmann-disc-archiver"
+version = "0.2.0"
+description = "Archivfeste Sicherung von Verzeichnissen auf optische Medien (BD-R, BD-XL, M-Disc) mit PAR2"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -15,11 +15,14 @@ dependencies = [
 ]
 
 [project.scripts]
-langzeitarchiv-manager = "lam.cli:app"
+disc-archiver = "disc_archiver.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/kurmann/disc-archiver"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["lam*"]
+include = ["disc_archiver*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

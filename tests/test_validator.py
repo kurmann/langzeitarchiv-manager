@@ -1,8 +1,8 @@
-"""Tests for lam.pack.validator."""
+"""Tests for disc_archiver.pack.validator."""
 
 import pytest
 
-from lam.pack.validator import ValidationError, validate
+from disc_archiver.pack.validator import ValidationError, validate
 
 
 def test_valid_directory(tmp_path):
