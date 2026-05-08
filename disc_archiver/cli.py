@@ -1,4 +1,4 @@
-"""Typer-based CLI entry point for LAM."""
+"""Typer-based CLI entry point for disc-archiver."""
 
 from __future__ import annotations
 
@@ -9,19 +9,19 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from lam import config as cfg
-from lam.pack import packager, par2, validator
+from disc_archiver import config as cfg
+from disc_archiver.pack import packager, par2, validator
 
 app = typer.Typer(
-    name="lam",
-    help="Langzeitarchiv-Manager – long-term digital archiving tool.",
+    name="disc-archiver",
+    help="disc-archiver – archivfeste Sicherung auf optische Medien mit PAR2.",
     no_args_is_help=True,
 )
 
 console = Console()
 
 # ---------------------------------------------------------------------------
-# lam pack
+# disc-archiver pack
 # ---------------------------------------------------------------------------
 
 
@@ -54,7 +54,7 @@ def pack(
         raise typer.Exit(code=1)
 
     if output is None:
-        raw_output = cfg.get("pack.output_dir") or str(Path.home() / "LAM" / "staging")
+        raw_output = cfg.get("pack.output_dir") or str(Path.home() / "DiscArchive" / "staging")
         output = Path(str(raw_output)).expanduser()
 
     if redundancy is None:
@@ -109,10 +109,10 @@ def pack(
 
 
 # ---------------------------------------------------------------------------
-# lam config
+# disc-archiver config
 # ---------------------------------------------------------------------------
 
-config_app = typer.Typer(help="Manage LAM configuration.")
+config_app = typer.Typer(help="Konfiguration von disc-archiver verwalten.")
 app.add_typer(config_app, name="config")
 
 
@@ -142,7 +142,7 @@ def config_get(
 def config_list() -> None:
     """List all configuration values."""
     data = cfg.list_all()
-    table = Table(title="LAM Configuration", show_header=True, header_style="bold cyan")
+    table = Table(title="disc-archiver Konfiguration", show_header=True, header_style="bold cyan")
     table.add_column("Key")
     table.add_column("Value")
     _flatten_table(table, data)

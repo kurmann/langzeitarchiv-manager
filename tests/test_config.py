@@ -1,15 +1,15 @@
-"""Tests for lam.config."""
+"""Tests for disc_archiver.config."""
 
 import pytest
 
-from lam import config as cfg
+from disc_archiver import config as cfg
 
 
 @pytest.fixture(autouse=True)
 def isolated_config(tmp_path, monkeypatch):
     """Redirect config file to a temporary directory for each test."""
-    monkeypatch.setattr(cfg, "CONFIG_DIR", tmp_path / "lam_config")
-    monkeypatch.setattr(cfg, "CONFIG_FILE", tmp_path / "lam_config" / "config.toml")
+    monkeypatch.setattr(cfg, "CONFIG_DIR", tmp_path / "disc_archiver_config")
+    monkeypatch.setattr(cfg, "CONFIG_FILE", tmp_path / "disc_archiver_config" / "config.toml")
 
 
 def test_get_default_redundancy():
